@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🍪 ขนมยาพิษ - เล่นออนไลน์</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-animation">
+        <div class="floating-cookie"></div>
+        <div class="floating-cookie"></div>
+        <div class="floating-cookie"></div>
+        <div class="floating-cookie"></div>
+        <div class="floating-cookie"></div>
+    </div>
+
+    <div class="container">
+        <!-- หน้าหลัก -->
+        <div id="main-menu" class="screen">
+            <div class="game-logo">
+                <div class="logo-icon">🍪💀</div>
+                <h1>ขนมยาพิษ</h1>
+                <p class="subtitle">เล่นออนไลน์กับเพื่อน</p>
+                <div class="online-indicator">
+                    <span class="status-dot" id="connection-status"></span>
+                    <span id="connection-text">กำลังเชื่อมต่อ...</span>
+                </div>
+            </div>
+            <div class="menu-buttons">
+                <button id="create-room" class="btn-primary pulse">
+                    <span class="btn-icon">🏠</span>
+                    สร้างห้องเกม
+                </button>
+                <div class="join-room-section">
+                    <input type="text" id="room-code" placeholder="ใส่รหัสห้อง (6 ตัว)" maxlength="6">
+                    <button id="join-room" class="btn-secondary">
+                        <span class="btn-icon">🚪</span>
+                        เข้าร่วมห้อง
+                    </button>
+                </div>
+                <button id="how-to-play" class="btn-secondary">
+                    <span class="btn-icon">📖</span>
+                    วิธีเล่น
+                </button>
+            </div>
+        </div>
+
+        <!-- หน้าห้องเกม -->
+        <div id="room-screen" class="screen hidden">
+            <div class="room-header">
+                <div class="room-info">
+                    <h2>ห้องเกม</h2>
+                    <div class="room-code">
+                        <span>รหัส: </span>
+                        <span id="current-room-id" class="code-display">------</span>
+                        <button id="copy-room-code" class="btn-copy" title="คัดลอกรหัส">📋</button>
+                    </div>
+                </div>
+                <button id="leave-room" class="btn-danger small">
+                    <span class="btn-icon">🚪</span>
+                    ออกจากห้อง
+                </button>
+            </div>
+
+            <div class="players-waiting">
+                <div class="player-slot" id="player-1-slot">
+                    <div class="player-avatar">
+                        <span class="player-number">1</span>
+                    </div>
+                    <div class="player-info">
+                        <div class="player-name">รอผู้เล่น...</div>
+                        <div class="player-status">⏳ รอ</div>
+                    </div>
+                    <div class="ready-indicator" style="display: none;">
+                        <span class="ready-check">✅</span>
+                    </div>
+                </div>
+
+                <div class="vs-indicator">VS</div>
+
+                <div class="player-slot" id="player-2-slot">
+                    <div class="player-avatar">
+                        <span class="player-number">2</span>
+                    </div>
+                    <div class="player-info">
+                        <div class="player-name">รอผู้เล่น...</div>
+                        <div class="player-status">⏳ รอ</div>
+                    </div>
+                    <div class="ready-indicator" style="display: none;">
+                        <span class="ready-check">✅</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="room-actions">
+                <button id="ready-btn" class="btn-secondary" disabled>
+                    <span class="btn-icon">✋</span>
+                    พร้อม
+                </button>
+                <button id="start-game-btn" class="btn-primary" disabled>
+                    <span class="btn-icon">🎮</span>
+                    เริ่มเกม
+                </button>
+            </div>
+
+            <!-- Chat Section -->
+            <div class="chat-section">
+                <div class="chat-messages" id="chat-messages">
+                    <div class="chat-message system">
+                        <span class="message-text">👋 ยินดีต้อนรับสู่ห้องเกม!</span>
+                    </div>
+                </div>
+                <div class="chat-input">
+                    <input type="text" id="chat-input" placeholder="พิมพ์ข้อความ..." maxlength="100">
+                    <button id="send-chat" class="btn-send">
+                        <span class="btn-icon">📤</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- หน้าเลือกยาพิษ -->
+        <div id="poison-selection" class="screen hidden">
+            <div class="selection-header">
+                <div class="player-indicator">
+                    <div class="player-avatar" id="current-selector">
+                        <span class="player-number">1</span>
+                    </div>
+                    <h2 id="selection-title">รอคู่แข่งเลือกยาพิษ...</h2>
+                    <p class="selection-subtitle" id="selection-subtitle">กรุณารอสักครู่</p>
+                </div>
+            </div>
+            <div class="sweets-grid" id="poison-grid">
+                <!-- ขนมสำหรับเลือกยาพิษ -->
+            </div>
+            <div class="selection-controls">
+                <button id="confirm-poison" disabled class="btn-primary">
+                    <span class="btn-icon">✅</span>
+                    ยืนยันการเลือก
+                </button>
+            </div>
+        </div>
+
+        <!-- หน้าเกม -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <div class="round-info">
+                    <div class="danger-meter">
+                        <div class="danger-fill" id="danger-fill"></div>
+                        <span class="danger-text">อันตราย</span>
+                    </div>
+                    <div class="remaining-info">
+                        เหลือ <span id="remaining">0</span> ชิ้น
+                    </div>
+                </div>
+                <div class="current-turn">
+                    <div class="turn-indicator" id="turn-indicator">
+                        <div class="player-avatar active">
+                            <span class="player-number">1</span>
+                        </div>
+                        <div class="turn-text">
+                            <h3 id="current-player-name">ผู้เล่นคนที่ 1</h3>
+                            <p id="turn-status">เลือกขนมที่จะกิน</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="game-board">
+                <div class="sweets-grid" id="game-grid">
+                    <!-- ขนมในเกม -->
+                </div>
+            </div>
+
+            <div class="players-status">
+                <div class="player player1 active">
+                    <div class="player-card">
+                        <div class="player-avatar">
+                            <span class="player-number">1</span>
+                        </div>
+                        <div class="player-info">
+                            <h3 id="player1-name">ผู้เล่นคนที่ 1</h3>
+                            <div class="status alive">🟢 รอดู</div>
+                            <div class="eaten-count">กิน: <span>0</span> ชิ้น</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="vs-indicator">VS</div>
+                <div class="player player2">
+                    <div class="player-card">
+                        <div class="player-avatar">
+                            <span class="player-number">2</span>
+                        </div>
+                        <div class="player-info">
+                            <h3 id="player2-name">ผู้เล่นคนที่ 2</h3>
+                            <div class="status alive">🟢 รอดู</div>
+                            <div class="eaten-count">กิน: <span>0</span> ชิ้น</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- หน้าผลลัพธ์ -->
+        <div id="result-screen" class="screen hidden">
+            <div class="result-content">
+                <div class="result-animation" id="result-animation">
+                    <div class="result-icon">💀</div>
+                </div>
+                <div class="result-text">
+                    <h2 id="winner-text"></h2>
+                    <div id="poison-reveal" class="poison-info"></div>
+                    <div id="game-summary" class="game-summary"></div>
+                </div>
+                <div class="result-actions">
+                    <button id="play-again" class="btn-primary pulse">
+                        <span class="btn-icon">🔄</span>
+                        เล่นใหม่
+                    </button>
+                    <button id="back-to-room" class="btn-secondary">
+                        <span class="btn-icon">🏠</span>
+                        กลับห้องเกม
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- หน้าวิธีเล่น -->
+        <div id="instructions" class="screen hidden">
+            <div class="instruction-content">
+                <h2>📖 วิธีเล่นออนไลน์</h2>
+                <div class="instruction-steps">
+                    <div class="step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h3>สร้างหรือเข้าร่วมห้อง</h3>
+                            <p>สร้างห้องใหม่แล้วแชร์รหัส หรือใส่รหัสห้องที่ได้รับ</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h3>รอคู่แข่ง</h3>
+                            <p>รอให้ผู้เล่นคนที่ 2 เข้าร่วมห้อง จากนั้นกด "พร้อม"</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h3>เลือกยาพิษ</h3>
+                            <p>ผลัดกันเลือกขนมที่จะอาบยาพิษ (อีกฝั่งไม่เห็น)</p>
+                        </div>
+                    </div>
+                    <div class="step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h3>เริ่มเกม</h3>
+                            <p>ผลัดกันเลือกขนมกิน ใครเลือกขนมยาพิษแพ้!</p>
+                        </div>
+                    </div>
+                </div>
+                <button id="back-to-menu" class="btn-secondary">
+                    <span class="btn-icon">🔙</span>
+                    กลับหน้าหลัก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loading-text">กำลังโหลด...</div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification hidden">
+        <div class="notification-content">
+            <span class="notification-icon">ℹ️</span>
+            <span class="notification-text" id="notification-text"></span>
+            <button class="notification-close" id="notification-close">×</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

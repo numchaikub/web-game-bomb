@@ -12,6 +12,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
+app.use(express.static(path.join(__dirname, 'public')));
 
 
 // =======================================================

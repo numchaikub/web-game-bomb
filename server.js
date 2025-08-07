@@ -1,24 +1,18 @@
-// === server.js (ฉบับสมบูรณ์) ===
-
 const express = require('express');
 const http = require('http');
-const { Server } = require('socket.io'); // เปลี่ยนวิธี import
-const path = require('path');
+const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
 
-// --- การตั้งค่า Socket.IO ที่สำคัญสำหรับ Vercel ---
-const io = new Server(server, { // ใช้ new Server()
-  path: "/socket.io", // <-- สำคัญมาก! ต้องตรงกับ client
+const io = new Server(server, {
+  path: "/socket.io", // ยืนยันว่า path ถูกต้อง
   cors: {
-    origin: "*", // อนุญาตทุกโดเมน (ดีสำหรับการทดสอบ)
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
 
-// --- Serve static files จากโฟลเดอร์ 'public' ---
-app.use(express.static(path.join(__dirname, 'public')));
 
 // =======================================================
 //   VVV  โค้ด LOGIC ของเกมที่คุณเขียนไว้ (ไม่ต้องแก้ไข) VVV

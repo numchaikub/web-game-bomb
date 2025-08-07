@@ -4,9 +4,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- การเชื่อมต่อกับ Server ---
     console.log("กำลังเชื่อมต่อกับเซิร์ฟเวอร์เกม...");
     const socket = io({
-        path: "/socket.io", // สำคัญมากสำหรับ Vercel
-        reconnectionAttempts: 5, // พยายามเชื่อมต่อใหม่ 5 ครั้ง
-        reconnectionDelay: 2000, // หน่วงเวลา 2 วินาที
+        path: "/socket.io"
     });
 
     // --- ตัวแปรเก็บสถานะของเกม ---

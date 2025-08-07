@@ -1,4 +1,3 @@
-
 {
   "version": 2,
   "builds": [
@@ -9,8 +8,12 @@
   ],
   "routes": [
     {
-      "src": "/(.*)",
+      "src": "/socket.io/.*",
       "dest": "server.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/public/$1"
     }
   ]
 }

@@ -4,8 +4,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- การเชื่อมต่อกับ Server ---
     console.log("กำลังเชื่อมต่อกับเซิร์ฟเวอร์เกม...");
     const socket = io({
-        path: "/socket.io"
-    });
+  // === เพิ่ม option ตรงนี้ ===
+  transports: ['polling']
+});
+
+// === จัดการ Event การเชื่อมต่อ ===
+socket.on('connect', () => {
+    // ... โค้ดของคุณเมื่อเชื่อมต่อสำเร็จ ...
+    console.log(`เชื่อมต่อสำเร็จ! Socket ID: ${socket.id}`);
+});
 
     // --- ตัวแปรเก็บสถานะของเกม ---
     let myPlayerInfo = null;

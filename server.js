@@ -150,4 +150,4 @@ io.on('connection', (socket) => {
 // ส่วนที่ 6: Export 'app' เพื่อให้ Vercel นำไปใช้งาน
 // =================================================================
 // ไม่ต้องใช้ server.listen(...) เพราะ Vercel จะจัดการให้เอง
-module.exports = app;
+module.exports = server; // <<<<----- บรรทัดนี้ผิด

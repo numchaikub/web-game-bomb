@@ -1,23 +1,28 @@
+// === server.js (ฉบับสมบูรณ์) ===
+
 const express = require('express');
 const http = require('http');
-const socketIo = require('socket.io');
+const { Server } = require('socket.io'); // เปลี่ยนวิธี import
 const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
 
 // --- การตั้งค่า Socket.IO ที่สำคัญสำหรับ Vercel ---
-const io = socketIo(server, {
+const io = new Server(server, { // ใช้ new Server()
+  path: "/socket.io", // <-- สำคัญมาก! ต้องตรงกับ client
   cors: {
-    origin: "*", // อนุญาตการเชื่อมต่อจากทุกที่
+    origin: "*", // อนุญาตทุกโดเมน (ดีสำหรับการทดสอบ)
     methods: ["GET", "POST"]
-  },
-  path: "/socket.io" // <--- **จุดสำคัญ:** ระบุ path สำหรับการเชื่อมต่อ WebSocket
+  }
 });
 
 // --- Serve static files จากโฟลเดอร์ 'public' ---
-// ทำให้ Vercel สามารถเข้าถึงไฟล์ index.html, script.js, style.css ของคุณได้
 app.use(express.static(path.join(__dirname, 'public')));
+
+// =======================================================
+//   VVV  โค้ด LOGIC ของเกมที่คุณเขียนไว้ (ไม่ต้องแก้ไข) VVV
+// =======================================================
 
 // Game rooms storage: ใช้ Map เพื่อเก็บข้อมูลห้องเกมทั้งหมด
 const gameRooms = new Map();
@@ -35,24 +40,24 @@ class GameRoom {
     this.selectionPhase = 1; // 1 หรือ 2
     this.playerEatenCount = { player1: 0, player2: 0 };
     this.startTime = Date.now();
-    
+
     // เพิ่ม Host เข้าเป็นผู้เล่นคนที่ 1
     this.addPlayer(hostSocket, 1);
   }
 
   addPlayer(socket, playerNumber = null) {
     if (this.players.size >= 2) return false;
-    
+
     const playerId = playerNumber || (this.players.size + 1);
     const player = {
       id: playerId,
       socket: socket,
       name: `ผู้เล่นคนที่ ${playerId}`
     };
-    
+
     this.players.set(socket.id, player);
     socket.join(this.id);
-    
+
     return player;
   }
 
@@ -94,12 +99,12 @@ class GameRoom {
     this.selectionPhase = 1;
     this.playerEatenCount = { player1: 0, player2: 0 };
   }
-  
+
   // ฟังก์ชันสร้าง Object สถานะเกมเพื่อส่งให้ Client
   getGameStateForPlayer(playerSocket) {
     const player = this.getPlayer(playerSocket.id);
     const players = this.getAllPlayers();
-    
+
     return {
       roomId: this.id,
       gameState: this.gameState,
@@ -127,9 +132,9 @@ io.on('connection', (socket) => {
     const roomId = Math.random().toString(36).substring(2, 6).toUpperCase();
     const room = new GameRoom(roomId, socket);
     gameRooms.set(roomId, room);
-    
+
     console.log(`Room created: ${roomId}`);
-    
+
     callback({
       success: true,
       roomId: roomId,
@@ -141,7 +146,7 @@ io.on('connection', (socket) => {
   socket.on('join-room', (data, callback) => {
     const { roomId } = data;
     const room = gameRooms.get(roomId);
-    
+
     if (!room) return callback({ success: false, error: 'ไม่พบห้องเกม' });
     if (room.isRoomFull()) return callback({ success: false, error: 'ห้องเกมเต็มแล้ว' });
 
@@ -164,9 +169,9 @@ io.on('connection', (socket) => {
     room.generateSweetCount();
     room.gameState = 'selecting-poison';
     room.selectionPhase = 1;
-    
+
     console.log(`Game started in room ${room.id}, sweets: ${room.totalSweets}`);
-    
+
     // แจ้งทุกคนในห้องว่าเกมเริ่มแล้ว
     io.to(room.id).emit('game-started', {
       totalSweets: room.totalSweets,
@@ -179,9 +184,9 @@ io.on('connection', (socket) => {
     const { poisonIndex } = data;
     const room = findRoomBySocket(socket.id);
     const player = room?.getPlayer(socket.id);
-    
+
     if (!room || !player || room.gameState !== 'selecting-poison' || player.id !== room.selectionPhase) return;
-    
+
     room.poisonPositions[`player${player.id}`] = poisonIndex;
     console.log(`Player ${player.id} selected poison at index ${poisonIndex}`);
 
@@ -206,11 +211,11 @@ io.on('connection', (socket) => {
     room.eatenSweets.push(sweetIndex);
     room.playerEatenCount[`player${player.id}`]++;
     console.log(`Player ${player.id} ate sweet ${sweetIndex}`);
-    
+
     // ตรวจสอบว่ากินยาพิษหรือไม่
     const ownPoison = room.poisonPositions[`player${player.id}`];
     const opponentPoison = room.poisonPositions[`player${player.id === 1 ? 2 : 1}`];
-    
+
     if (sweetIndex === ownPoison || sweetIndex === opponentPoison) {
       room.gameState = 'finished';
       io.to(room.id).emit('game-over', {
@@ -224,7 +229,7 @@ io.on('connection', (socket) => {
       io.to(room.id).emit('sweet-eaten', { gameState: room.getGameStateForPlayer(socket) });
     }
   });
-  
+
   // เล่นอีกครั้ง
   socket.on('restart-game', () => {
     const room = findRoomBySocket(socket.id);
@@ -269,17 +274,20 @@ function findRoomBySocket(socketId) {
   }
   return null;
 }
+// =======================================================
+//   ^^^  โค้ด LOGIC ของเกมที่คุณเขียนไว้ (ไม่ต้องแก้ไข) ^^^
+// =======================================================
 
-// --- Vercel จะจัดการเรื่อง Port เอง ไม่ต้องกำหนด Port ---
-// แต่เราต้องมี server.listen() เพื่อให้ Express ทำงาน
-// ส่วนนี้จะทำงานได้ดีทั้งบนเครื่องและบน Vercel
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`🍪 Poison Cookie Game Server running on port ${PORT}`);
-});
 
-// Vercel จัดการ serverless functions ไม่จำเป็นต้องมี setInterval ในนี้
-// การ cleanup จะเกิดขึ้นเองเมื่อ instance ของ server ถูกปิด
+// --- ส่วนที่จำเป็นสำหรับให้ Vercel ทำงาน ---
+// Vercel จะไม่ใช้ server.listen() แต่จะใช้ app ที่ export ไปแทน
+// เราจะเก็บ server.listen ไว้เพื่อให้ยังรันบนเครื่องตัวเอง (localhost) ได้
+if (process.env.NODE_ENV !== 'production') {
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`🍪 Server running on http://localhost:${PORT}`);
+  });
+}
 
-// export app เพื่อให้ Vercel ใช้งานได้
+// --- Export `app` เพื่อให้ Vercel นำไปใช้งาน ---
 module.exports = app;

@@ -1,23 +1,9 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "server.js",
-      "use": "@vercel/node"
-    },
-    {
-      "src": "public/**",
-      "use": "@vercel/static"
-    }
-  ],
+  "builds": [ { "src": "server.js", "use": "@vercel/node" } ],
   "routes": [
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/server.js"
-    }
+    { "src": "/socket.io/(.*)", "dest": "server.js" },
+    { "src": "/(.*)", "handle": "filesystem" },
+    { "src": "/(.*)", "dest": "server.js" }
   ]
 }
